@@ -1,13 +1,10 @@
 import axios from "axios";
 
-const defaultBaseURL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? "/api" : "http://localhost:5000/api");
+
 
 const API = axios.create({
-  baseURL: defaultBaseURL,
+  baseURL: "https://lostandfound-o3tv.onrender.com/api",
 });
-
 // Attach token automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");

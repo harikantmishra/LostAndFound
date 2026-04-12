@@ -47,9 +47,20 @@ function Home() {
         if (debounced) params.q = debounced;
         if (typeFilter) params.type = typeFilter;
         const res = await API.get("/items", { params });
-        setItems(res.data);
-      } catch {
-        setError("Failed to load items. Please try again.");
+        const payload = res.data;
+        // Must be an array — same guard as Dashboard. Non-arrays (wrong API URL, wrapped body) would crash .map.
+        const list = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+        setItems(list);
+      } catch (err) {
+        const msg =
+          err?.response?.data?.msg ||
+          err?.message ||
+          "Failed to load items. Please try again.";
+        setError(typeof msg === "string" ? msg : "Failed to load items. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -207,11 +218,15 @@ function Home() {
         </div>
       )}
 
-      <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {items.map((item) => (
-          <ItemCard key={item._id} item={item} />
-        ))}
-      </section>
+      {!loading && items.length > 0 && (
+        <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {items
+            .filter((item) => item && (item._id != null || item.id != null))
+            .map((item) => (
+              <ItemCard key={String(item._id ?? item.id)} item={item} />
+            ))}
+        </section>
+      )}
     </div>
   );
 }
